@@ -163,6 +163,7 @@ int main(void){
                 jugando = 0; // Game Over
             }
         }
+        
 
         // 3. Renderizado y Frame Rate
         render(rango, pieza);
