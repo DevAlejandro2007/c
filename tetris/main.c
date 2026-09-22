@@ -1,7 +1,4 @@
 #include "tetris.h"
-#include <stdlib.h>
-#include <time.h>
-#include <conio.h>
 
 const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     {{0,0,0,0},{1,1,1,1},{0,0,0,0},{0,0,0,0}}, // I
@@ -32,97 +29,6 @@ const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     void restaurar_terminal(void) {}
 #endif
 
-int tecla_presionada(void) {
-    return _kbhit();
-}
-
-char leer_tecla(void) {
-    return (char)_getch();
-}
-
-PiezaActual generar_pieza_aleatoria(void) {
-    PiezaActual nueva;
-    nueva.tipo = rand() % NUM_PIEZAS;
-    nueva.x = 3; 
-    nueva.y = 0;
-
-    for (int i = 0; i < PIEZA_SIZE; i++) {
-        for (int j = 0; j < PIEZA_SIZE; j++) {
-            nueva.forma[i][j] = PIEZAS[nueva.tipo][i][j];
-        }
-    }
-    return nueva;
-}
-
-void render(int rango[FIL][COL], PiezaActual pieza){
-    int tablero_temporal[FIL][COL];
-    for (int i = 0; i < FIL; i++){
-        for(int j = 0; j < COL; j++){
-            tablero_temporal[i][j] = rango[i][j];   
-        }
-    }
-
-    for (int i = 0; i < PIEZA_SIZE; i++){
-        for (int j = 0; j < PIEZA_SIZE; j++){
-            if(pieza.forma[i][j] == 1 ){
-                int pos_y = pieza.y + i;
-                int pos_x = pieza.x + j;
-                if (pos_y >= 0 && pos_y < FIL && pos_x >= 0 && pos_x < COL) {
-                    tablero_temporal[pos_y][pos_x] = 1;
-                }
-            }
-        }
-    }
-
-    printf("\033[H"); 
-    printf("----- TETRIS ---- \n");
-    for (int i = 0; i < FIL; i++) {
-        printf("[");
-        for (int j = 0; j < COL; j++) {
-            if (tablero_temporal[i][j] == 1) {
-                printf("*"); 
-            } else {
-                printf(" ");
-            }
-        }
-        printf("]\n");
-    }
-    printf("--------------\n");
-    fflush(stdout);
-}
-
-void fijar_pieza(int rango[FIL][COL], PiezaActual pieza){
-    for (int i = 0; i < PIEZA_SIZE; i++){
-        for (int j = 0; j < PIEZA_SIZE; j++){ // Corregido: j = 0
-            if (pieza.forma[i][j] == 1){
-                int pos_y = pieza.y + i;
-                int pos_x = pieza.x + j;
-                if (pos_y >= 0 && pos_y < FIL && pos_x >= 0 && pos_x < COL) {
-                    rango[pos_y][pos_x] = 1;
-                }
-            }
-        }
-    }
-}
-
-int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y){
-    for (int i = 0; i < PIEZA_SIZE; i++){
-        for (int j = 0; j < PIEZA_SIZE; j++){ // Corregido: j = 0
-            if (pieza.forma[i][j] == 1){
-                int pos_x = nueva_x + j;
-                int pos_y = nueva_y + i;    
-                
-                if (pos_x < 0 || pos_x >= COL || pos_y >= FIL ){
-                    return 1; 
-                }
-                if (pos_y >= 0 && rango[pos_y][pos_x] == 1) {
-                    return 1;
-                }
-            }
-        }
-    }
-    return 0; // Corregido: fuera de los bucles
-}
 
 int main(void){
     srand((unsigned int)time(NULL)); 
@@ -160,7 +66,8 @@ int main(void){
             pieza = generar_pieza_aleatoria();
 
             if (colision(rango, pieza, pieza.x, pieza.y)) {
-                jugando = 0; // Game Over
+                jugando = 0; 
+                
             }
         }
         
@@ -172,5 +79,6 @@ int main(void){
 
     printf("\033[?25h");
     restaurar_terminal();
+    game_over(jugando);
     return 0;
 }
