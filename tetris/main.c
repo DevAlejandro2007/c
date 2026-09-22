@@ -71,8 +71,6 @@ int main(void){
             }
         }
         
-
-        // 3. Renderizado y Frame Rate
         render(rango, pieza);
         PAUSA_MS(150);
     } 
