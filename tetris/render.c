@@ -1,7 +1,7 @@
 #include "tetris.h"
 #include <stdlib.h>
 #include <time.h>
-#include <conio.h>
+
 
 void render(int rango[FIL][COL], PiezaActual pieza){
     int tablero_temporal[FIL][COL];

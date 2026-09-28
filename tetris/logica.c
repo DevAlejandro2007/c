@@ -1,7 +1,7 @@
 #include "tetris.h"
 #include <stdlib.h>
 #include <time.h>
-#include <conio.h>
+
 
 int tecla_presionada(void) {
     return _kbhit();

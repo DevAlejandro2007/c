@@ -8,7 +8,6 @@
 #include "tetris.h"
 #include <stdlib.h>
 #include <time.h>
-#include <conio.h>
 
 
 /* Detectamos el sistema operativo */
