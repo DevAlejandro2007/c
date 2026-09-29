@@ -29,6 +29,7 @@ const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     void restaurar_terminal(void) {}
 #endif
 
+int puntaje = 0;
 
 int main(void){
     srand((unsigned int)time(NULL)); 
@@ -36,13 +37,18 @@ int main(void){
     printf("\033[2J\033[?25l"); 
 
     int rango[FIL][COL] = {0};
+    
     PiezaActual pieza = generar_pieza_aleatoria();
+
     int jugando = 1;
 
     while (jugando){
         // 1. Entrada de usuario
         if (tecla_presionada()){
             char c = leer_tecla();
+            if(c == 'w' || c == 'W'){
+                rotar_pieza(&pieza, rango);
+            }
             if (c == 'a' || c == 'A'){
                 if (!colision(rango, pieza, pieza.x - 1, pieza.y)){
                     pieza.x--;
@@ -58,20 +64,26 @@ int main(void){
             }
         }
 
-        // 2. Caída Automática (Lógica fuera de la condición del teclado)
         if (!colision(rango, pieza, pieza.x, pieza.y + 1)) {
             pieza.y++;
         } else {
             fijar_pieza(rango, pieza);
+            int lineas = limpiar_lineas(rango);
+            if(lineas>0){
+                if (lineas == 1) puntaje += 100;
+                else if (lineas == 2) puntaje += 300;
+                else if (lineas == 3) puntaje += 500;
+                else if (lineas == 4) puntaje += 800;
+            }
+
             pieza = generar_pieza_aleatoria();
 
             if (colision(rango, pieza, pieza.x, pieza.y)) {
                 jugando = 0; 
-                
             }
         }
         
-        render(rango, pieza);
+        render(rango, pieza,puntaje);
         PAUSA_MS(150);
     } 
 

@@ -10,6 +10,7 @@
 #include <time.h>
 
 
+
 /* Detectamos el sistema operativo */
 #if defined(_WIN32) || defined(_WIN64)
     #include <conio.h>
@@ -29,6 +30,7 @@
 #define NUM_PIEZAS 7
 #define PIEZA_SIZE 4
 
+
 typedef struct {
     int tipo;                 
     int x;               
@@ -47,12 +49,16 @@ int tecla_presionada(void);
 
 char leer_tecla(void);
 
-void render(int rango[FIL][COL], PiezaActual pieza);
+void render(int rango[FIL][COL], PiezaActual pieza, int puntaje);
 
 int colision(int rango[FIL][COL],PiezaActual pieza, int nueva_x, int nueva_y);
 
 void game_over(int jugando);
 
 void fijar_pieza(int rango[FIL][COL], PiezaActual pieza);
+
+void rotar_pieza(PiezaActual *pieza, int rango[FIL][COL]);
+
+int limpiar_lineas(int rango[FIL][COL]);
 
 #endif 

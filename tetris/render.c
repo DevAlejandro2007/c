@@ -3,7 +3,7 @@
 #include <time.h>
 
 
-void render(int rango[FIL][COL], PiezaActual pieza){
+void render(int rango[FIL][COL], PiezaActual pieza,int puntaje ){
     int tablero_temporal[FIL][COL];
     for (int i = 0; i < FIL; i++){
         for(int j = 0; j < COL; j++){
@@ -25,6 +25,7 @@ void render(int rango[FIL][COL], PiezaActual pieza){
 
     printf("\033[H"); 
     printf("----- TETRIS ---- \n");
+    printf(" Puntaje: %d\n", puntaje);
     for (int i = 0; i < FIL; i++) {
         printf("[");
         for (int j = 0; j < COL; j++) {
@@ -42,7 +43,7 @@ void render(int rango[FIL][COL], PiezaActual pieza){
 
 void fijar_pieza(int rango[FIL][COL], PiezaActual pieza){
     for (int i = 0; i < PIEZA_SIZE; i++){
-        for (int j = 0; j < PIEZA_SIZE; j++){ // Corregido: j = 0
+        for (int j = 0; j < PIEZA_SIZE; j++){ 
             if (pieza.forma[i][j] == 1){
                 int pos_y = pieza.y + i;
                 int pos_x = pieza.x + j;

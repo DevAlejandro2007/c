@@ -1,7 +1,4 @@
 #include "tetris.h"
-#include <stdlib.h>
-#include <time.h>
-
 
 int tecla_presionada(void) {
     return _kbhit();
@@ -36,7 +33,7 @@ PiezaActual generar_pieza_aleatoria(void) {
 
 int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y){
     for (int i = 0; i < PIEZA_SIZE; i++){
-        for (int j = 0; j < PIEZA_SIZE; j++){ // Corregido: j = 0
+        for (int j = 0; j < PIEZA_SIZE; j++){ 
             if (pieza.forma[i][j] == 1){
                 int pos_x = nueva_x + j;
                 int pos_y = nueva_y + i;    
@@ -50,5 +47,66 @@ int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y){
             }
         }
     }
-    return 0; // Corregido: fuera de los bucles
+    return 0; 
 }
+
+void rotar_pieza(PiezaActual *pieza, int rango[FIL][COL]){
+
+    int temp[PIEZA_SIZE][PIEZA_SIZE];
+
+    for (int i = 0; i < PIEZA_SIZE; i++ ){
+        for (int j = 0; j < PIEZA_SIZE; j++){
+            temp[j][PIEZA_SIZE - 1 - i] = pieza -> forma[i][j];
+        }
+    }
+    PiezaActual prueba = *pieza;
+    for (int i = 0; i< PIEZA_SIZE; i++){
+        for (int j = 0; j < PIEZA_SIZE; j++){
+            prueba.forma[i][j] = temp[i][j];
+        }
+    }
+
+    if(!colision(rango,prueba,prueba.x,prueba.y)){
+        for(int i = 0; i < PIEZA_SIZE; i++){
+            for (int j=0; j < PIEZA_SIZE; j++){
+                pieza ->forma[i][j] = temp[i][j];
+            }
+        }
+    }
+
+}
+
+int limpiar_lineas(int rango[FIL][COL]){
+    int lineas_limpiadas = 0;
+    
+    for (int i = FIL - 1; i >=0 ; i--){
+        int fila_llena = 1;
+    
+        for (int j = 0; j < COL; j++){
+            if(rango[i][j] == 0){
+                fila_llena = 0;
+                break;
+            }
+        }
+        if (fila_llena){
+                lineas_limpiadas++;
+
+            for (int k = i; k > 0; k--) {
+                for (int j = 0; j < COL; j++) {
+                    rango[k][j] = rango[k - 1][j];
+                    }
+                }
+            
+                for (int j = 0; j < COL; j++) {
+                    rango[0][j] = 0;
+                    }
+            
+                i++;
+        
+            }
+        }      
+
+        return lineas_limpiadas;
+
+    }
+
