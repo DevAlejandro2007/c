@@ -49,7 +49,7 @@ int tecla_presionada(void);
 
 char leer_tecla(void);
 
-void render(int rango[FIL][COL], PiezaActual pieza, int puntaje);
+void render(int rango[FIL][COL], PiezaActual pieza, PiezaActual siguiente,int puntaje );
 
 int colision(int rango[FIL][COL],PiezaActual pieza, int nueva_x, int nueva_y);
 

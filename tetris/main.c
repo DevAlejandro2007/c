@@ -39,6 +39,7 @@ int main(void){
     int rango[FIL][COL] = {0};
     
     PiezaActual pieza = generar_pieza_aleatoria();
+    PiezaActual siguiente_pieza = generar_pieza_aleatoria();    
 
     int jugando = 1;
 
@@ -75,15 +76,22 @@ int main(void){
                 else if (lineas == 3) puntaje += 500;
                 else if (lineas == 4) puntaje += 800;
             }
+            pieza = siguiente_pieza;
+            siguiente_pieza = generar_pieza_aleatoria();
 
-            pieza = generar_pieza_aleatoria();
+            if (colision(rango, pieza, pieza.x, pieza.y + 1)) {
+                fijar_pieza(rango, pieza);
+                limpiar_lineas(rango);
 
-            if (colision(rango, pieza, pieza.x, pieza.y)) {
-                jugando = 0; 
+                pieza = siguiente_pieza;
+                siguiente_pieza = generar_pieza_aleatoria();
+
+                if(colision(rango, pieza, pieza.x, pieza.y)){
+                    jugando = 0;
+                }
             }
         }
-        
-        render(rango, pieza,puntaje);
+        render(rango, pieza, siguiente_pieza, puntaje);
         PAUSA_MS(150);
     } 
 
