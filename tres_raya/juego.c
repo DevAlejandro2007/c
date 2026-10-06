@@ -1,5 +1,3 @@
-#include <stdio.h> 
-#include <math.h>
 #include "juego.h"
 
 void jugar(int *turn, int *fila, int *columna, int filas[3][3]) {
