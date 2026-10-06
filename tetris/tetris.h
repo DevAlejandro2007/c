@@ -1,11 +1,7 @@
 #ifndef TETRIS_H
 #define TETRIS_H
 
-#include "tetris.h"
-
 #include <stdio.h>
-
-#include "tetris.h"
 #include <stdlib.h>
 #include <time.h>
 

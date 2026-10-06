@@ -1,4 +1,3 @@
-#include <stdio.h> 
 #include "juego.h"
 
 int turno(int x) {
