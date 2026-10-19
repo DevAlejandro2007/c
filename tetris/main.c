@@ -10,30 +10,15 @@ const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     {{1,1,0,0},{0,1,1,0},{0,0,0,0},{0,0,0,0}}  // Z
 };
 
-#if !(defined(_WIN32) || defined(_WIN64))
-    static struct termios old_term;
-
-    void configurar_terminal(void) {
-        struct termios new_term;
-        tcgetattr(STDIN_FILENO, &old_term);
-        new_term = old_term;
-        new_term.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
-    }
-
-    void restaurar_terminal(void) {
-        tcsetattr(STDIN_FILENO, TCSANOW, &old_term);
-    }
-#else
-    void configurar_terminal(void) {}
-    void restaurar_terminal(void) {}
-#endif
-
 int puntaje = 0;
 
 int main(void){
     srand((unsigned int)time(NULL)); 
-    configurar_terminal();
+    if (configurar_terminal() == -1) {
+        fprintf(stderr, "No se pudo configurar la terminal para jugar.\n");
+        return EXIT_FAILURE;
+    }
+    atexit(restaurar_terminal);
     printf("\033[2J\033[?25l"); 
 
     int rango[FIL][COL] = {0};
@@ -42,11 +27,23 @@ int main(void){
     PiezaActual siguiente_pieza = generar_pieza_aleatoria();    
 
     int jugando = 1;
+    int error_entrada = 0;
 
     while (jugando){
         // 1. Entrada de usuario
-        if (tecla_presionada()){
-            char c = leer_tecla();
+        int disponible = tecla_presionada();
+        if (disponible < 0) {
+            perror("Error al leer el teclado");
+            error_entrada = 1;
+            break;
+        }
+        if (disponible > 0){
+            int c = leer_tecla();
+            if (c == EOF) {
+                fputs("No se pudo leer una tecla de la terminal.\n", stderr);
+                error_entrada = 1;
+                break;
+            }
             if(c == 'w' || c == 'W'){
                 rotar_pieza(&pieza, rango);
             }
@@ -92,11 +89,13 @@ int main(void){
             }
         }
         render(rango, pieza, siguiente_pieza, puntaje);
-        PAUSA_MS(150);
+        pausa_ms(150);
     } 
 
-    printf("\033[?25h");
     restaurar_terminal();
+    if (error_entrada) {
+        return EXIT_FAILURE;
+    }
     game_over(jugando);
     return 0;
 }
