@@ -1,6 +1,10 @@
 #ifndef PERSONA_H
 #define PERSONA_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 struct Persona
 {
     char nombre[50];

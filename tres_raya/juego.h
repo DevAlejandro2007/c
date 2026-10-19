@@ -1,6 +1,9 @@
 #ifndef JUEGO_H
 #define JUEGO_H
 
+#include <stdio.h> 
+#include <math.h>
+
 int turno(int x);
 void mostrar_tablero(int filas[3][3]);
 int comprobar_ganador(int filas[3][3]);

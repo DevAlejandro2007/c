@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "persona.h"
 
 struct Persona *personas;
@@ -33,7 +30,11 @@ int agregar(){
     printf("NUMERO DE TELEFONO: \n");
     scanf("%19s", personas[cantidad].telefono);
 
-    printf("NOMBRE : %s EDAD: %d  CORREO: %s TELEFONO %s \n", personas[cantidad].nombre,personas[cantidad].edad,personas[cantidad].correo,personas[cantidad].telefono);   
+    printf("NOMBRE : %s EDAD: %d  CORREO: %s TELEFONO %s \n", 
+        personas[cantidad].nombre,
+        personas[cantidad].edad,
+        personas[cantidad].correo,
+        personas[cantidad].telefono);   
     cantidad ++;
 
     return 1;
