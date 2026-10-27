@@ -1,0 +1,26 @@
+# Compiled binaries
+*.exe
+*.out
+*.o
+tetris/tetris
+tetris/*.exe
+admin_personas/gestor
+admin_personas/*.exe
+tres_raya/juego
+tres_raya/*.exe
+tres_raya/juego_linux
+*.bin
+
+# Build artifacts
+*.dSYM/
+*.stackdump
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

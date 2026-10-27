@@ -5,14 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#if defined(_WIN32)
-    #include <conio.h>
-    #include <windows.h>
-#else
-    #include <termios.h>
-    #include <unistd.h>
-    #include <sys/select.h>
-#endif
+#include "platform/platform.h"
 
 #define FIL 20
 #define COL 10
@@ -31,9 +24,9 @@ extern const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE];
 int configurar_terminal(void);
 void restaurar_terminal(void);
 void pausa_ms(unsigned int milisegundos);
-PiezaActual generar_pieza_aleatoria(void);
 int tecla_presionada(void);
 int leer_tecla(void);
+PiezaActual generar_pieza_aleatoria(void);
 void render(int rango[FIL][COL], PiezaActual pieza, PiezaActual siguiente, int puntaje);
 int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y);
 void game_over(int jugando);
