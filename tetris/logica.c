@@ -4,7 +4,9 @@ void game_over(int jugando){
     if(jugando == 0){
         printf("\033[?25h");
         printf("*** FIN DEL JUEGO ***\n");
-        printf("** NO HAS DESPEJADO LAS CASILLAS **");
+        printf("** NO HAS DESPEJADO LAS CASILLAS **\n");
+        printf("Presiona cualquier tecla para volver al menu...");
+        fflush(stdout);
     }
 }
 

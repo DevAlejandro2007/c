@@ -10,16 +10,11 @@ const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     {{1,1,0,0},{0,1,1,0},{0,0,0,0},{0,0,0,0}}  // Z
 };
 
-int puntaje = 0;
+static int puntaje_global = 0;
 
-int main(void){
+void iniciar_juego(void){
+    puntaje_global = 0;
     srand((unsigned int)time(NULL)); 
-    if (configurar_terminal() == -1) {
-        fprintf(stderr, "No se pudo configurar la terminal para jugar.\n");
-        return EXIT_FAILURE;
-    }
-    atexit(restaurar_terminal);
-    printf("\033[2J\033[?25l"); 
 
     int rango[FIL][COL] = {0};
     
@@ -68,10 +63,10 @@ int main(void){
             fijar_pieza(rango, pieza);
             int lineas = limpiar_lineas(rango);
             if(lineas>0){
-                if (lineas == 1) puntaje += 100;
-                else if (lineas == 2) puntaje += 300;
-                else if (lineas == 3) puntaje += 500;
-                else if (lineas == 4) puntaje += 800;
+                if (lineas == 1) puntaje_global += 100;
+                else if (lineas == 2) puntaje_global += 300;
+                else if (lineas == 3) puntaje_global += 500;
+                else if (lineas == 4) puntaje_global += 800;
             }
             pieza = siguiente_pieza;
             siguiente_pieza = generar_pieza_aleatoria();
@@ -88,14 +83,66 @@ int main(void){
                 }
             }
         }
-        render(rango, pieza, siguiente_pieza, puntaje);
+        render(rango, pieza, siguiente_pieza, puntaje_global);
         pausa_ms(150);
     } 
 
-    restaurar_terminal();
     if (error_entrada) {
-        return EXIT_FAILURE;
+        return;
     }
     game_over(jugando);
+    // Esperar a que el usuario presione una tecla para volver al menú
+    while (tecla_presionada() > 0) {
+        (void)leer_tecla();
+    }
+    (void)leer_tecla();
+}
+
+int main(void){
+    if (configurar_terminal() == -1) {
+        fprintf(stderr, "No se pudo configurar la terminal para jugar.\n");
+        return EXIT_FAILURE;
+    }
+    atexit(restaurar_terminal);
+    printf("\033[2J\033[?25l"); 
+    fflush(stdout);
+
+    int corriendo = 1;
+    while (corriendo) {
+        mostrar_menu();
+        int disponible = tecla_presionada();
+        if (disponible < 0) {
+            perror("Error al leer el teclado");
+            break;
+        }
+        if (disponible == 0) {
+            pausa_ms(50);
+            continue;
+        }
+        int c = leer_tecla();
+        if (c == EOF) {
+            break;
+        }
+        if (c == '1') {
+            iniciar_juego();
+            printf("\033[2J\033[H\033[?25l");
+            fflush(stdout);
+        } else if (c == '2') {
+            mostrar_instrucciones();
+            while (tecla_presionada() > 0) {
+                (void)leer_tecla();
+            }
+            (void)leer_tecla();
+            printf("\033[2J\033[H\033[?25l");
+            fflush(stdout);
+        } else if (c == '3' || c == 'q' || c == 'Q') {
+            corriendo = 0;
+        }
+    }
+
+    restaurar_terminal();
+    printf("\033[2J\033[H");
+    printf("Hasta luego!\n");
+    fflush(stdout);
     return 0;
 }

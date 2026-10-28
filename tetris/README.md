@@ -12,6 +12,7 @@
 - [Diseño Multiplataforma](#diseño-multiplataforma)
 - [Requisitos](#requisitos)
 - [Compilación y Ejecución](#compilación-y-ejecución)
+- [Menú Principal](#menú-principal)
 - [Controles](#controles)
 - [Sistema de Puntuación](#sistema-de-puntuación)
 - [Detalles Técnicos](#detalles-técnicos)
@@ -26,22 +27,23 @@ El objetivo va más allá de hacer un juego: demostrar un diseño limpio separan
 
 ## Características
 
+- **Menú principal**: Interfaz clara con opciones `Jugar`, `Instrucciones` y `Salir`.
 - **Multiplataforma**: Funciona tanto en Linux como en Windows sin modificar la lógica del juego.
 - **Interfaz TUI**: Renderizado puramente en terminal con códigos ANSI.
 - **Arquitectura modular**: Separación clara entre lógica, renderizado e interfaz con el sistema.
 - **Entrada no bloqueante**: Permite mover/rotar la pieza sin pausar el juego.
 - **Sistema de puntuación**: Bonificación por limpiar múltiples líneas a la vez.
 - **Previsualización de pieza siguiente**: Muestra la próxima pieza antes de aparecer.
-- **Game Over funcional**: Detecta cuando no hay espacio para la nueva pieza.
+- **Game Over funcional**: Detecta cuando no hay espacio para la nueva pieza y permite volver al menú.
 - **Sin dependencias externas**: Únicamente librerías estándar de C.
 
 ## Arquitectura del Proyecto
 
 ```text
 tetris/
-├── main.c           # Bucle principal, entrada del usuario, flujo del juego
-├── logica.c         # Lógica pura: colisiones, rotaciones, limpieza de líneas, generación de piezas
-├── render.c         # Renderizado del tablero, pieza actual, siguiente pieza y puntuación
+├── main.c           # Menú principal, flujo del programa e inicio del juego
+├── logica.c         # Lógica pura: colisiones, rotaciones, limpieza de líneas, generación de piezas, game over
+├── render.c         # Renderizado del tablero, pieza actual, siguiente pieza, menú e instrucciones
 ├── tetris.h         # Definiciones, estructuras, constantes y prototipos comunes
 ├── platform/
 │   ├── platform.h   # Interfaz de la capa de abstracción del sistema
@@ -54,14 +56,14 @@ tetris/
 
 | Archivo | Descripción |
 | --- | --- |
-| `main.c` | Gestiona el *game loop*, controla el paso del tiempo, procesa las teclas y decide cuándo spawnear/fijar piezas. |
-| `logica.c` | Todo lo algorítmico: `colision()`, `rotar_pieza()`, `limpiar_lineas()`, `fijar_pieza()`, `generar_pieza_aleatoria()`. |
-| `render.c` | Se encarga únicamente de pintar en pantalla usando códigos de escape ANSI. |
+| `main.c` | Controla el menú, llama a `iniciar_juego()` y gestiona el flujo entre pantallas. |
+| `logica.c` | Todo lo algorítmico: `colision()`, `rotar_pieza()`, `limpiar_lineas()`, `fijar_pieza()`, `generar_pieza_aleatoria()`, `game_over()`. |
+| `render.c` | Se encarga de pintar tablero, HUD, `mostrar_menu()` y `mostrar_instrucciones()`. |
 | `platform/term.c` | Única capa que conoce el SO. Aquí vive todo lo específico de Windows o Linux. |
 
 ## Diseño Multiplataforma
 
-La gran clave es **aislar el código dependiente del sistema operativo**. Gracias a esto, `main.c`, `logica.c` y `render.c` no tienen ni un solo `#ifdef`. Únicamente consumen la interfaz definida en `platform/platform.h`.
+Gracias a la capa `platform/`, `main.c`, `logica.c` y `render.c` **no tienen ni un solo `#ifdef`**. Únicamente consumen la interfaz de `platform/platform.h`.
 
 ### Linux (`!_WIN32`)
 
@@ -114,6 +116,26 @@ tetris.exe
 
 > En Linux, usa `./tetris` ya que el directorio actual no está en tu `$PATH`.
 
+## Menú Principal
+
+Al iniciar el juego aparecerá el siguiente menú:
+
+```text
+======= TETRIS =======
+======================
+
+      1. JUGAR
+      2. INSTRUCCIONES
+      3. SALIR
+
+======================
+  Selecciona una opcion:
+```
+
+- **1. JUGAR** - Inicia una nueva partida
+- **2. INSTRUCCIONES** - Muestra controles, objetivo y puntuación. Vuelve al menú con cualquier tecla
+- **3. SALIR** - Cierra el programa restaurando la terminal correctamente
+
 ## Controles
 
 | Tecla | Acción |
@@ -145,6 +167,8 @@ tetris.exe
 ## Mejoras a Futuro
 
 - [ ] **Ghost Piece** - Silueta de dónde caerá la pieza
+- [ ] **Hold Piece** - Guardar pieza para usar más adelante
+- [ ] **Sistema SRS** - Super Rotation System
 - [ ] **Niveles y velocidad dinámica**
 - [ ] **High Score persistente** - Guardar récord en archivo
 - [ ] **Manejo preciso con `clock_gettime()`**
