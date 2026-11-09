@@ -1,111 +1,157 @@
 # Aprendizaje del lenguaje C
 
-> Proyecto: Una seria de sub-proyectos con el objetivo de aprender C
+> Proyecto: una serie de subproyectos con el objetivo de aprender C.
 
----
-
-## Badges
-
-![C](https://img.shields.io/badge/language-16.1.0-brightgreen?logo=C)
-![Git](https://img.shields.io/badge/Git--orange?logo=Git\&logoColor=orange)
-![GitHub](https://img.shields.io/badge/Github--grey?logo=Github\&logoColor=black)
-
----
+![C](https://img.shields.io/badge/lenguaje-C-blue?logo=c)
+![gcc](https://img.shields.io/badge/gcc-16.1.0-brightgreen?logo=gnu)
+![Git](https://img.shields.io/badge/Git-orange?logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-grey?logo=github&logoColor=white)
 
 ## Tabla de contenidos
 
-* [Descripción](#descripción)
-* [Características](#características)
-* [Tecnologías](#tecnologías)
-* [Requisitos previos](#requisitos-previos)
-* [Instalación (local)](#instalación-local)
-* [Ejecutar juegos](#ejecutar-juegos)
----
+- [Descripción](#descripción)
+- [Características](#características)
+- [Subproyectos](#subproyectos)
+- [Tecnologías](#tecnologías)
+- [Requisitos previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Compilación y ejecución](#compilación-y-ejecución)
+- [Arquitectura y decisiones](#arquitectura-y-decisiones)
+- [Cómo contribuir](#cómo-contribuir)
 
 ## Descripción
 
-En este repositorio veremos distintas formas de aprender C, desde lo basico hasta lo avanzado, cada carpeta es un juego diferente programado en C, para ejecutar en terminal o PowerShell
-
-> Nota: la carpeta `tetris` solo esta disponible para si ejecución en sistemas WINDOWS 11, ya que las librerias para reconocer las teclas son independientes para cada sistema operativo.
-
----
+En este repositorio se recogen distintos programas escritos en C, desde lo básico hasta lo avanzado. Cada carpeta es un subproyecto independiente con su propio `main()` y se ejecuta en terminal o PowerShell.
 
 ## Características
 
-* Solo lenguaje C
-* Diseñado para estudiantes en español
-* Se utiliza .h para pre cargar funciones y bibliotecas
+- Solo lenguaje C.
+- Diseñado para estudiantes en español.
+- Se utilizan archivos `.h` para declarar funciones, estructuras y bibliotecas.
+- Cada subproyecto se compila y ejecuta de forma independiente.
 
----
+## Subproyectos
+
+| Carpeta | Descripción | Ejecutable |
+| --- | --- | --- |
+| [`admin_personas`](admin_personas) | Gestión de personas en memoria: agregar, editar, ver y eliminar. | `gestor` |
+| [`tetris`](tetris) | Tetris de consola con renderizado ANSI y capa de plataforma para Linux y Windows. | `tetris` / `tetris.exe` |
+| [`tres_raya`](tres_raya) | Tres en raya para dos jugadores en la terminal. | `juego` |
+
+`tetris` es multiplataforma: incluye `Makefile` para Linux y `build.bat` para Windows. El resto de subproyectos se compila con `gcc` directamente.
 
 ## Tecnologías
-### Lenguaje 
-* C / gcc 16.1.0
-### admin_personas
 
-* stdio.h
-* stdlib.h
-* string.h
+### Lenguaje
 
-### tetris 
+- C con `gcc` (versión de referencia: 16.1.0)
+- C11
 
-* stdio.h
-* stdlib.h
-* time.h
+### Bibliotecas por subproyecto
 
-###  tres_raya
-
-* stdio.h 
-* math.h
-
----
+| Subproyecto | Bibliotecas |
+| --- | --- |
+| `admin_personas` | `stdio.h`, `stdlib.h`, `string.h` |
+| `tetris` | `stdio.h`, `stdlib.h`, `time.h`; en Linux `termios.h`, `unistd.h`, `sys/select.h`; en Windows `conio.h`, `windows.h` |
+| `tres_raya` | `stdio.h`, `math.h` |
 
 ## Requisitos previos
 
-* Git
-* C / gcc -version 16.1.0
-* Ganas de estudiar C
+- Git.
+- `gcc` con soporte para C11.
+- `make` (solo para compilar `tetris` en Linux).
+- En Windows: MinGW/MSYS2 o un compilador compatible.
 
----
+## Instalación
 
-## Instalación (local)
+1. Clona el repositorio:
 
-1. Clona el repo:
+   ```bash
+   git clone https://github.com/DevAlejandro2007/c.git
+   cd c
+   ```
 
-```bash
-git https://github.com/DevAlejandro2007/c.git
-cd c
-```
+2. Entra en la carpeta del subproyecto que quieras probar.
 
----
+## Compilación y ejecución
 
-## Ejecutar juegos 
+Los comandos se ejecutan desde la carpeta de cada subproyecto.
 
-Asegurate de estar en ka carpeta del juego ejemplo : "cd /tetris" 
-
-```bash
-tetris.exe -> PARA WINDOWS
-tetris -> PARA LINUX
-```
-debes de estar en la misma carpeta para ejecutarlo, sino, no reconocera tu archivo 
-
----
-
-
-
-## Cambios
-
-Si has realizado algun cambio en el codigo, recuerda volver a compilarlo antes de ejecutarlo con: 
-
-EJEMPLO PARA TETRIS:
-(se deben de incluir todos los archivos para su compilacion)
+### `admin_personas`
 
 ```bash
-gcc logica.c main.c render.c -o tetris.exe 
+cd admin_personas
+gcc main.c persona.c -o gestor
+./gestor
 ```
 
----
+En Windows, el ejecutable se genera como `gestor.exe`.
 
+### `tetris`
 
+En Linux:
 
+```bash
+cd tetris
+make
+./tetris
+```
 
+Para limpiar los binarios generados:
+
+```bash
+make clean
+```
+
+En Windows:
+
+```bat
+cd tetris
+build.bat
+tetris.exe
+```
+
+También se puede compilar directamente:
+
+```bash
+gcc -std=c11 -Wall -Wextra -O2 main.c logica.c render.c platform/term.c -o tetris
+```
+
+En Windows, usa `-o tetris.exe` y ejecuta `tetris.exe`.
+
+### `tres_raya`
+
+```bash
+cd tres_raya
+gcc juego.c funciones.c -o juego
+./juego
+```
+
+> Ejecuta cada programa desde la carpeta de su subproyecto para que las rutas de compilación coincidan con las que se muestran aquí.
+
+## Arquitectura y decisiones
+
+```text
+.
+├── admin_personas/   # Gestión de personas
+├── tetris/           # Juego + capa platform/
+├── tres_raya/        # Tres en raya
+└── docs/decisions/   # Registros de decisiones de arquitectura (ADR)
+```
+
+Cada subproyecto es autónomo y declara sus interfaces en cabeceras locales. Las decisiones de diseño se registran como ADR:
+
+| ADR | Decisión |
+| --- | --- |
+| [ADR-001](docs/decisions/0001-subproyectos-independientes.md) | Organizar el repositorio en subproyectos independientes. |
+| [ADR-002](docs/decisions/0002-cabeceras-locales.md) | Declarar cada subproyecto con cabeceras locales `.h`. |
+| [ADR-003](docs/decisions/0003-capa-plataforma-tetris.md) | Aislar el código dependiente del sistema en `platform/`. |
+
+Para más detalles sobre `tetris`, consulta su propio [README](tetris/README.md).
+
+## Cómo contribuir
+
+- Compila y prueba los cambios antes de ejecutarlos.
+- No versiones binarios: `.gitignore` ya excluye `*.exe`, `*.o`, `*.out` y los ejecutables de cada subproyecto.
+- Si cambias una función pública, actualiza la cabecera `.h` correspondiente.
+- Si tomas una decisión de arquitectura relevante, añade un ADR en [`docs/decisions/`](docs/decisions) siguiendo la numeración existente.
