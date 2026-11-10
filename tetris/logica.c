@@ -1,15 +1,5 @@
 #include "tetris.h"
 
-void game_over(int jugando) {
-  if (jugando == 0) {
-    printf("\033[?25h");
-    printf("*** FIN DEL JUEGO ***\n");
-    printf("** NO HAS DESPEJADO LAS CASILLAS **\n");
-    printf("Presiona cualquier tecla para volver al menu...");
-    fflush(stdout);
-  }
-}
-
 PiezaActual generar_pieza_aleatoria(void) {
   PiezaActual nueva;
   nueva.tipo = rand() % NUM_PIEZAS;
@@ -41,6 +31,20 @@ int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y) {
     }
   }
   return 0;
+}
+
+void fijar_pieza(int rango[FIL][COL], PiezaActual pieza) {
+  for (int i = 0; i < PIEZA_SIZE; i++) {
+    for (int j = 0; j < PIEZA_SIZE; j++) {
+      if (pieza.forma[i][j] == 1) {
+        int pos_y = pieza.y + i;
+        int pos_x = pieza.x + j;
+        if (pos_y >= 0 && pos_y < FIL && pos_x >= 0 && pos_x < COL) {
+          rango[pos_y][pos_x] = 1;
+        }
+      }
+    }
+  }
 }
 
 void rotar_pieza(PiezaActual *pieza, int rango[FIL][COL]) {

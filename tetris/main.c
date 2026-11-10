@@ -1,4 +1,5 @@
 #include "tetris.h"
+#include "ui.h"
 
 const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     {{0,0,0,0},{1,1,1,1},{0,0,0,0},{0,0,0,0}}, // I
@@ -12,45 +13,70 @@ const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
 
 static int puntaje_global = 0;
 
-void iniciar_juego(void){
+static int tecla_es(int c, int especial, char letra) {
+    if (c == especial || c == letra) {
+        return 1;
+    }
+    if (letra >= 'a' && letra <= 'z' && c == letra - ('a' - 'A')) {
+        return 1;
+    }
+    return 0;
+}
+
+ResultadoJuego iniciar_juego(void) {
     puntaje_global = 0;
-    srand((unsigned int)time(NULL)); 
 
     int rango[FIL][COL] = {0};
-    
+
     PiezaActual pieza = generar_pieza_aleatoria();
-    PiezaActual siguiente_pieza = generar_pieza_aleatoria();    
+    PiezaActual siguiente_pieza = generar_pieza_aleatoria();
 
     int jugando = 1;
     int error_entrada = 0;
 
-    while (jugando){
-        // 1. Entrada de usuario
+    limpiar_pantalla();
+
+    while (jugando) {
         int disponible = tecla_presionada();
+
         if (disponible < 0) {
             perror("Error al leer el teclado");
             error_entrada = 1;
             break;
         }
-        if (disponible > 0){
+
+        if (disponible > 0) {
             int c = leer_tecla();
+
             if (c == EOF) {
                 fputs("No se pudo leer una tecla de la terminal.\n", stderr);
                 error_entrada = 1;
                 break;
             }
-            if(c == 'w' || c == 'W'){
-                rotar_pieza(&pieza, rango);
+
+            if (tecla_es(c, TECLA_ESCAPE, 'p')) {
+                switch (menu_pausa()) {
+                    case PAUSA_CONTINUAR:
+                        limpiar_pantalla();
+                        continue;
+                    case PAUSA_REINICIAR:
+                        return JUEGO_REINICIAR;
+                    case PAUSA_MENU:
+                        return JUEGO_VOLVER_MENU;
+                }
             }
-            if (c == 'a' || c == 'A'){
-                if (!colision(rango, pieza, pieza.x - 1, pieza.y)){
+
+            if (tecla_es(c, TECLA_ARRIBA, 'w')) {
+                rotar_pieza(&pieza, rango);
+            } else if (tecla_es(c, TECLA_IZQUIERDA, 'a')) {
+                if (!colision(rango, pieza, pieza.x - 1, pieza.y)) {
                     pieza.x--;
                 }
-            } else if (c == 'd' || c == 'D'){
+            } else if (tecla_es(c, TECLA_DERECHA, 'd')) {
                 if (!colision(rango, pieza, pieza.x + 1, pieza.y)) {
                     pieza.x++;
                 }
-            } else if (c == 's' || c == 'S') {
+            } else if (tecla_es(c, TECLA_ABAJO, 's')) {
                 if (!colision(rango, pieza, pieza.x, pieza.y + 1)) {
                     pieza.y++;
                 }
@@ -62,12 +88,14 @@ void iniciar_juego(void){
         } else {
             fijar_pieza(rango, pieza);
             int lineas = limpiar_lineas(rango);
-            if(lineas>0){
+
+            if (lineas > 0) {
                 if (lineas == 1) puntaje_global += 100;
                 else if (lineas == 2) puntaje_global += 300;
                 else if (lineas == 3) puntaje_global += 500;
                 else if (lineas == 4) puntaje_global += 800;
             }
+
             pieza = siguiente_pieza;
             siguiente_pieza = generar_pieza_aleatoria();
 
@@ -78,71 +106,70 @@ void iniciar_juego(void){
                 pieza = siguiente_pieza;
                 siguiente_pieza = generar_pieza_aleatoria();
 
-                if(colision(rango, pieza, pieza.x, pieza.y)){
+                if (colision(rango, pieza, pieza.x, pieza.y)) {
                     jugando = 0;
                 }
             }
         }
+
         render(rango, pieza, siguiente_pieza, puntaje_global);
         pausa_ms(150);
-    } 
+    }
 
     if (error_entrada) {
-        return;
+        return JUEGO_VOLVER_MENU;
     }
-    game_over(jugando);
-    // Esperar a que el usuario presione una tecla para volver al menú
+
+    /* Deja ver el tablero final antes de mostrar el menu. */
+    pausa_ms(500);
+
+    /* Descarta teclas pulsadas durante la pausa para no elegir sin querer. */
     while (tecla_presionada() > 0) {
         (void)leer_tecla();
     }
-    (void)leer_tecla();
+
+    return (menu_game_over(puntaje_global) == GAMEOVER_REINTENTAR)
+         ? JUEGO_REINICIAR
+         : JUEGO_VOLVER_MENU;
 }
 
-int main(void){
+int main(void) {
     if (configurar_terminal() == -1) {
         fprintf(stderr, "No se pudo configurar la terminal para jugar.\n");
         return EXIT_FAILURE;
     }
+
     atexit(restaurar_terminal);
-    printf("\033[2J\033[?25l"); 
-    fflush(stdout);
+    instalar_manejadores();
+
+    srand((unsigned int)time(NULL));
+
+    entrar_pantalla_alterna();
+    ocultar_cursor();
 
     int corriendo = 1;
+
     while (corriendo) {
-        mostrar_menu();
-        int disponible = tecla_presionada();
-        if (disponible < 0) {
-            perror("Error al leer el teclado");
-            break;
-        }
-        if (disponible == 0) {
-            pausa_ms(50);
-            continue;
-        }
-        int c = leer_tecla();
-        if (c == EOF) {
-            break;
-        }
-        if (c == '1') {
-            iniciar_juego();
-            printf("\033[2J\033[H\033[?25l");
-            fflush(stdout);
-        } else if (c == '2') {
-            mostrar_instrucciones();
-            while (tecla_presionada() > 0) {
-                (void)leer_tecla();
+        switch (menu_principal()) {
+            case MENU_JUGAR: {
+                ResultadoJuego resultado;
+                do {
+                    resultado = iniciar_juego();
+                } while (resultado == JUEGO_REINICIAR);
+                break;
             }
-            (void)leer_tecla();
-            printf("\033[2J\033[H\033[?25l");
-            fflush(stdout);
-        } else if (c == '3' || c == 'q' || c == 'Q') {
-            corriendo = 0;
+            case MENU_INSTRUCCIONES:
+                pantalla_instrucciones();
+                break;
+            case MENU_SALIR:
+                corriendo = 0;
+                break;
         }
     }
 
     restaurar_terminal();
-    printf("\033[2J\033[H");
     printf("Hasta luego!\n");
     fflush(stdout);
+
     return 0;
 }

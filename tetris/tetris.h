@@ -19,20 +19,17 @@ typedef struct {
     int forma[PIEZA_SIZE][PIEZA_SIZE];
 } PiezaActual;
 
+typedef enum {
+    JUEGO_REINICIAR,
+    JUEGO_VOLVER_MENU
+} ResultadoJuego;
+
 extern const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE];
 
-int configurar_terminal(void);
-void restaurar_terminal(void);
-void pausa_ms(unsigned int milisegundos);
-int tecla_presionada(void);
-int leer_tecla(void);
 PiezaActual generar_pieza_aleatoria(void);
 void render(int rango[FIL][COL], PiezaActual pieza, PiezaActual siguiente, int puntaje);
-void mostrar_menu(void);
-void mostrar_instrucciones(void);
-void iniciar_juego(void);
+ResultadoJuego iniciar_juego(void);
 int colision(int rango[FIL][COL], PiezaActual pieza, int nueva_x, int nueva_y);
-void game_over(int jugando);
 void fijar_pieza(int rango[FIL][COL], PiezaActual pieza);
 void rotar_pieza(PiezaActual *pieza, int rango[FIL][COL]);
 int limpiar_lineas(int rango[FIL][COL]);
