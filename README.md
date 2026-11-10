@@ -35,7 +35,7 @@ En este repositorio se recogen distintos programas escritos en C, desde lo bási
 | Carpeta | Descripción | Ejecutable |
 | --- | --- | --- |
 | [`admin_personas`](admin_personas) | Gestión de personas en memoria: agregar, editar, ver y eliminar. | `gestor` |
-| [`tetris`](tetris) | Tetris de consola con renderizado ANSI y capa de plataforma para Linux y Windows. | `tetris` / `tetris.exe` |
+| [`tetris`](tetris) | Tetris con menús TUI, renderizado ANSI y capa de plataforma para Linux y Windows. | `tetris` / `tetris.exe` |
 | [`tres_raya`](tres_raya) | Tres en raya para dos jugadores en la terminal. | `juego` |
 
 `tetris` es multiplataforma: incluye `Makefile` para Linux y `build.bat` para Windows. El resto de subproyectos se compila con `gcc` directamente.
@@ -52,7 +52,7 @@ En este repositorio se recogen distintos programas escritos en C, desde lo bási
 | Subproyecto | Bibliotecas |
 | --- | --- |
 | `admin_personas` | `stdio.h`, `stdlib.h`, `string.h` |
-| `tetris` | `stdio.h`, `stdlib.h`, `time.h`; en Linux `termios.h`, `unistd.h`, `sys/select.h`; en Windows `conio.h`, `windows.h` |
+| `tetris` | `stdio.h`, `stdlib.h`, `time.h`; en Linux `termios.h`, `unistd.h`, `sys/select.h`, `signal.h`, `errno.h`; en Windows `conio.h`, `windows.h` |
 | `tres_raya` | `stdio.h`, `math.h` |
 
 ## Requisitos previos
@@ -114,7 +114,7 @@ tetris.exe
 También se puede compilar directamente:
 
 ```bash
-gcc -std=c11 -Wall -Wextra -O2 main.c logica.c render.c platform/term.c -o tetris
+gcc -std=c11 -Wall -Wextra -Wpedantic -O2 main.c logica.c render.c ui.c platform/term.c -o tetris
 ```
 
 En Windows, usa `-o tetris.exe` y ejecuta `tetris.exe`.
@@ -146,6 +146,7 @@ Cada subproyecto es autónomo y declara sus interfaces en cabeceras locales. Las
 | [ADR-001](docs/decisions/0001-subproyectos-independientes.md) | Organizar el repositorio en subproyectos independientes. |
 | [ADR-002](docs/decisions/0002-cabeceras-locales.md) | Declarar cada subproyecto con cabeceras locales `.h`. |
 | [ADR-003](docs/decisions/0003-capa-plataforma-tetris.md) | Aislar el código dependiente del sistema en `platform/`. |
+| [ADR-004](docs/decisions/0004-tui-ansi-propia.md) | Construir una TUI propia con ANSI en lugar de usar ncurses. |
 
 Para más detalles sobre `tetris`, consulta su propio [README](tetris/README.md).
 
