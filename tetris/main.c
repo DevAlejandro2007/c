@@ -1,4 +1,5 @@
 #include "tetris.h"
+#include "puntajes.h"
 #include "ui.h"
 
 const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
@@ -21,6 +22,33 @@ static int tecla_es(int c, int especial, char letra) {
         return 1;
     }
     return 0;
+}
+
+static void registrar_puntaje(int puntaje) {
+    Puntaje lista[MAX_PUNTAJES];
+    char nombre[MAX_NOMBRE + 1];
+    int cantidad = cargar_puntajes(RUTA_PUNTAJES, lista, MAX_PUNTAJES);
+
+    if (cantidad < 0) {
+        pantalla_aviso("No se pudo leer puntajes.txt");
+        return;
+    }
+
+    if (!puntaje_califica(lista, cantidad, puntaje, MAX_PUNTAJES)) {
+        return;
+    }
+
+    pantalla_nombre(nombre, sizeof nombre);
+    if (!insertar_puntaje(lista, &cantidad, nombre, puntaje, MAX_PUNTAJES)) {
+        return;
+    }
+
+    if (guardar_puntajes(RUTA_PUNTAJES, lista, cantidad) != 0) {
+        pantalla_aviso("No se pudo guardar puntajes.txt");
+        return;
+    }
+
+    pantalla_records(lista, cantidad);
 }
 
 ResultadoJuego iniciar_juego(void) {
@@ -128,6 +156,8 @@ ResultadoJuego iniciar_juego(void) {
         (void)leer_tecla();
     }
 
+    registrar_puntaje(puntaje_global);
+
     return (menu_game_over(puntaje_global) == GAMEOVER_REINTENTAR)
          ? JUEGO_REINICIAR
          : JUEGO_VOLVER_MENU;
@@ -156,6 +186,18 @@ int main(void) {
                 do {
                     resultado = iniciar_juego();
                 } while (resultado == JUEGO_REINICIAR);
+                break;
+            }
+            case MENU_RECORDS: {
+                Puntaje lista[MAX_PUNTAJES];
+                int cantidad = cargar_puntajes(RUTA_PUNTAJES, lista,
+                                               MAX_PUNTAJES);
+
+                if (cantidad < 0) {
+                    pantalla_aviso("No se pudo leer puntajes.txt");
+                } else {
+                    pantalla_records(lista, cantidad);
+                }
                 break;
             }
             case MENU_INSTRUCCIONES:

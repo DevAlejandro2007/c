@@ -74,6 +74,9 @@ int leer_tecla(void) {
     if (c == ' ') {
         return TECLA_ESPACIO;
     }
+    if (c == 8 || c == 127) {
+        return TECLA_BACKSPACE;
+    }
 
     return c;
 }
@@ -244,6 +247,9 @@ int leer_tecla(void) {
     if (c == ' ') {
         return TECLA_ESPACIO;
     }
+    if (c == 8 || c == 127) {
+        return TECLA_BACKSPACE;
+    }
 
     return c;
 }
@@ -281,4 +287,16 @@ void entrar_pantalla_alterna(void) {
 void salir_pantalla_alterna(void) {
     printf("\033[?1049l");
     fflush(stdout);
+}
+
+int reemplazar_archivo(const char *origen, const char *destino) {
+#if defined(_WIN32)
+    if (rename(origen, destino) == 0) {
+        return 0;
+    }
+    remove(destino);
+    return (rename(origen, destino) == 0) ? 0 : -1;
+#else
+    return (rename(origen, destino) == 0) ? 0 : -1;
+#endif
 }

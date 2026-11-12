@@ -15,6 +15,10 @@ tres_raya/juego_linux
 *.dSYM/
 *.stackdump
 
+# Datos locales de tetris
+tetris/puntajes.txt
+tetris/puntajes.txt.tmp
+
 # Editor/IDE
 .vscode/
 .idea/

@@ -12,7 +12,8 @@ enum Tecla {
     TECLA_DERECHA,
     TECLA_ENTER,
     TECLA_ESCAPE,
-    TECLA_ESPACIO
+    TECLA_ESPACIO,
+    TECLA_BACKSPACE
 };
 
 int configurar_terminal(void);
@@ -27,5 +28,12 @@ void ocultar_cursor(void);
 void mostrar_cursor(void);
 void entrar_pantalla_alterna(void);
 void salir_pantalla_alterna(void);
+
+/*
+ * Reemplaza 'destino' con 'origen'. En Windows, si rename() no puede
+ * sobrescribir, se elimina el destino y se reintenta. Devuelve 0 si
+ * todo salio bien y -1 si no se pudo completar el reemplazo.
+ */
+int reemplazar_archivo(const char *origen, const char *destino);
 
 #endif
