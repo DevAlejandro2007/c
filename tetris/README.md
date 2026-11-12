@@ -13,6 +13,7 @@
 - [Requisitos](#requisitos)
 - [Compilación y Ejecución](#compilación-y-ejecución)
 - [Menú Principal](#menú-principal)
+- [Records Persistentes](#records-persistentes)
 - [Controles](#controles)
 - [Sistema de Puntuación](#sistema-de-puntuación)
 - [Detalles Técnicos](#detalles-técnicos)
@@ -34,6 +35,7 @@ El objetivo va más allá de hacer un juego: demostrar un diseño limpio separan
 - **Entrada no bloqueante**: Permite mover/rotar la pieza sin pausar el juego.
 - **Pausa**: `Esc` o `P` abre un menú con `Continuar`, `Reiniciar` y `Volver al menu`.
 - **Game Over interactivo**: Detecta el final de la partida y permite reintentar o volver al menú.
+- **Records persistentes**: Top 10 con nombre y puntaje guardado en `puntajes.txt`.
 - **Sistema de puntuación**: Bonificación por limpiar múltiples líneas a la vez.
 - **Previsualización de pieza siguiente**: Muestra la próxima pieza antes de aparecer.
 - **Sin dependencias externas**: Únicamente librerías estándar de C.
@@ -45,12 +47,14 @@ tetris/
 ├── main.c           # Flujo del programa, bucle del juego y decisiones de pausa/game over
 ├── logica.c         # Lógica pura: colisiones, rotaciones, limpieza de líneas y generación de piezas
 ├── render.c         # Renderizado del tablero, pieza actual y siguiente pieza
-├── ui.c             # Menús interactivos, instrucciones, pausa y game over
+├── ui.c             # Menús interactivos, instrucciones, pausa, game over y records
 ├── ui.h             # Interfaz de la capa de UI
+├── puntajes.c       # Persistencia de records en texto plano
+├── puntajes.h       # Interfaz de la capa de records
 ├── tetris.h         # Definiciones, estructuras, constantes y prototipos comunes
 ├── platform/
 │   ├── platform.h   # Interfaz de la capa de abstracción del sistema
-│   └── term.c       # Implementación multiplataforma (terminal, input, timing, pantalla alterna)
+│   └── term.c       # Implementación multiplataforma (terminal, input, timing, pantalla alterna, archivos)
 ├── Makefile         # Build para Linux/UNIX
 └── build.bat        # Build para Windows (CMD/PowerShell)
 ```
@@ -59,15 +63,16 @@ tetris/
 
 | Archivo | Descripción |
 | --- | --- |
-| `main.c` | Controla el flujo entre menú, juego y pausa; ejecuta el bucle principal. |
+| `main.c` | Controla el flujo entre menú, juego, pausa y records; ejecuta el bucle principal. |
 | `logica.c` | Todo lo algorítmico: `colision()`, `rotar_pieza()`, `limpiar_lineas()`, `fijar_pieza()` y `generar_pieza_aleatoria()`. |
 | `render.c` | Pinta el tablero, el HUD y la pieza siguiente. No conoce menús. |
-| `ui.c` / `ui.h` | Menú principal, instrucciones, pausa y game over. Solo depende de `platform/`. |
+| `ui.c` / `ui.h` | Menú principal, instrucciones, pausa, game over y records. Solo depende de `platform/`. |
+| `puntajes.c` / `puntajes.h` | Carga, ordena, sanea y guarda el top 10 en `puntajes.txt`. No conoce la UI. |
 | `platform/term.c` | Única capa que conoce el SO. Aquí vive todo lo específico de Windows o Linux. |
 
 ## Diseño Multiplataforma
 
-Gracias a la capa `platform/`, `main.c`, `logica.c`, `render.c` y `ui.c` **no tienen ni un solo `#ifdef`**. Únicamente consumen la interfaz de `platform/platform.h`.
+Gracias a la capa `platform/`, `main.c`, `logica.c`, `render.c`, `ui.c` y `puntajes.c` **no tienen ni un solo `#ifdef`**. Únicamente consumen la interfaz de `platform/platform.h`.
 
 ### Linux (`!_WIN32`)
 
@@ -122,7 +127,7 @@ tetris.exe
 O directamente:
 
 ```bat
-gcc -std=c11 -Wall -Wextra -Wpedantic -O2 main.c logica.c render.c ui.c platform/term.c -o tetris.exe
+gcc -std=c11 -Wall -Wextra -Wpedantic -O2 main.c logica.c render.c ui.c puntajes.c platform/term.c -o tetris.exe
 tetris.exe
 ```
 
@@ -137,6 +142,7 @@ Al iniciar el juego aparece un menú navegable con el elemento seleccionado resa
 |             T E T R I S              |
 +--------------------------------------+
 | > Jugar                              |
+|   Records                            |
 |   Instrucciones                      |
 |   Salir                              |
 +--------------------------------------+
@@ -145,10 +151,43 @@ Al iniciar el juego aparece un menú navegable con el elemento seleccionado resa
 ```
 
 - **Jugar** - Inicia una nueva partida.
+- **Records** - Muestra el top 10 guardado en `puntajes.txt`. Vuelve con `Enter` o `Esc`.
 - **Instrucciones** - Muestra controles, objetivo y puntuación. Vuelve con `Enter` o `Esc`.
 - **Salir** - Cierra el programa restaurando la terminal y la pantalla original.
 
 Durante la partida, `Esc` o `P` abre el menú de pausa con `Continuar`, `Reiniciar` y `Volver al menu`. Al terminar, el game over permite `Reintentar` o volver al menú.
+
+## Records Persistentes
+
+El juego guarda los **10 mejores puntajes** en un archivo de texto plano llamado `puntajes.txt`, en el directorio desde el que se ejecuta el juego.
+
+Solo se pide el nombre cuando el puntaje entra en el top 10. Si el nombre se deja vacío o se pulsa `Esc`, se guarda como `Anonymous`. El nombre se recorta, se limita a 20 caracteres ASCII, se le quitan los caracteres de control y se sustituye `|` por `-`.
+
+### Formato del archivo
+
+```text
+# tetris-scores v1
+# nombre|puntaje
+Ana|1200
+Anonymous|900
+```
+
+Las líneas que empiezan por `#` son comentarios. Los registros se ordenan de mayor a menor puntaje y, si hay empate, por nombre alfabético.
+
+### Reglas
+
+- Un puntaje `0` o negativo no se guarda.
+- Si hay menos de 10 records, cualquier puntaje positivo entra.
+- Si ya hay 10, hay que superar al décimo para entrar.
+- Un archivo inexistente se trata como una tabla vacía.
+- Las líneas corruptas o con puntajes inválidos se ignoran.
+- Si hay un error real de lectura o escritura, la UI muestra un aviso.
+
+### Guardado seguro
+
+El guardado se hace primero en `puntajes.txt.tmp` y luego se reemplaza el archivo original. En Linux/POSIX el reemplazo es atómico con `rename()`. En Windows, si `rename()` no puede sobrescribir, se elimina el destino y se reintenta; esa diferencia vive en `platform/term.c`.
+
+Para borrar todos los records, elimina `puntajes.txt`. El archivo está ignorado por Git porque es dato local de cada jugador.
 
 ## Controles
 
@@ -160,6 +199,15 @@ Durante la partida, `Esc` o `P` abre el menú de pausa con `Continuar`, `Reinici
 | `↓` / `S` | Mover la selección hacia abajo |
 | `Enter` | Seleccionar la opción |
 | `Q` / `Esc` | Salir o cancelar |
+
+### Al escribir un nombre
+
+| Tecla | Acción |
+| --- | --- |
+| Caracteres imprimibles | Añadir al nombre (máximo 20) |
+| `Backspace` | Borrar el último carácter |
+| `Enter` | Confirmar el nombre |
+| `Esc` | Cancelar y usar `Anonymous` |
 
 ### En partida
 
@@ -188,8 +236,10 @@ Durante la partida, `Esc` o `P` abre el menú de pausa con `Continuar`, `Reinici
 - **Limpieza de líneas**: Al completar una fila, se desplazan las superiores hacia abajo.
 - **Game Loop**: Caída automática por tiempo + procesamiento de input no bloqueante.
 - **Renderizado**: Uso de `\033[H` para reposicionar cursor sin limpiar pantalla completa constantemente.
-- **Teclas normalizadas**: `platform/term.c` traduce flechas, `Enter` y `Esc` a un enum común; la UI no sabe si corre en Linux o Windows.
+- **Teclas normalizadas**: `platform/term.c` traduce flechas, `Enter`, `Esc` y `Backspace` a un enum común; la UI no sabe si corre en Linux o Windows.
 - **Menús reutilizables**: `ui.c` expone un único `menu_seleccion()` interno para el menú principal, la pausa y el game over.
+- **Persistencia aislada**: `puntajes.c` es el único módulo que conoce el formato de `puntajes.txt`; `main.c` decide cuándo guardar y `ui.c` solo muestra la tabla.
+- **Guardado seguro**: se escribe un archivo temporal y se reemplaza el original mediante `reemplazar_archivo()` en `platform/`.
 - **Pantalla alterna**: La UI usa el buffer alterno de la terminal y restaura el contenido original al salir.
 - **Limpieza segura**: `atexit(restaurar_terminal)` y los manejadores de `SIGINT`/`SIGTERM` (o `SetConsoleCtrlHandler` en Windows) restauran cursor, pantalla y modo de terminal.
 
@@ -200,7 +250,6 @@ Durante la partida, `Esc` o `P` abre el menú de pausa con `Continuar`, `Reinici
 - [ ] **Hard Drop** - Caída instantánea con `Espacio`
 - [ ] **Sistema SRS** - Super Rotation System
 - [ ] **Niveles y velocidad dinámica**
-- [ ] **High Score persistente** - Guardar récord en archivo
 - [ ] **Manejo preciso con `clock_gettime()`**
 - [ ] **Detección de tamaño de terminal** - Avisar si el tablero no cabe
 
