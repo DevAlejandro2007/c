@@ -24,6 +24,14 @@ static int tecla_es(int c, int especial, char letra) {
     return 0;
 }
 
+static void sumar_lineas(int lineas) {
+    static const int puntos[] = {0, 100, 300, 500, 800};
+
+    if (lineas >= 1 && lineas <= 4) {
+        puntaje_global += puntos[lineas];
+    }
+}
+
 static void registrar_puntaje(int puntaje) {
     Puntaje lista[MAX_PUNTAJES];
     char nombre[MAX_NOMBRE + 1];
@@ -115,38 +123,33 @@ ResultadoJuego iniciar_juego(void) {
             pieza.y++;
         } else {
             fijar_pieza(rango, pieza);
-            int lineas = limpiar_lineas(rango);
-
-            if (lineas > 0) {
-                if (lineas == 1) puntaje_global += 100;
-                else if (lineas == 2) puntaje_global += 300;
-                else if (lineas == 3) puntaje_global += 500;
-                else if (lineas == 4) puntaje_global += 800;
-            }
+            sumar_lineas(limpiar_lineas(rango));
 
             pieza = siguiente_pieza;
             siguiente_pieza = generar_pieza_aleatoria();
 
-            if (colision(rango, pieza, pieza.x, pieza.y + 1)) {
-                fijar_pieza(rango, pieza);
-                limpiar_lineas(rango);
-
-                pieza = siguiente_pieza;
-                siguiente_pieza = generar_pieza_aleatoria();
-
-                if (colision(rango, pieza, pieza.x, pieza.y)) {
-                    jugando = 0;
-                }
+            if (colision(rango, pieza, pieza.x, pieza.y)) {
+                jugando = 0;
             }
         }
 
-        render(rango, pieza, siguiente_pieza, puntaje_global);
-        pausa_ms(150);
+        if (jugando) {
+            render(rango, pieza, siguiente_pieza, puntaje_global);
+            pausa_ms(150);
+        }
     }
 
     if (error_entrada) {
         return JUEGO_VOLVER_MENU;
     }
+
+    /* Muestra el tablero final sin la pieza que ya no cabe. */
+    for (int i = 0; i < PIEZA_SIZE; i++) {
+        for (int j = 0; j < PIEZA_SIZE; j++) {
+            pieza.forma[i][j] = 0;
+        }
+    }
+    render(rango, pieza, siguiente_pieza, puntaje_global);
 
     /* Deja ver el tablero final antes de mostrar el menu. */
     pausa_ms(500);

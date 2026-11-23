@@ -1,3 +1,8 @@
+/* Necesario para sigaction(), select(), read() y tcsetattr() con -std=c11. */
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "platform.h"
 
 #include <stdio.h>
@@ -97,6 +102,8 @@ void pausa_ms(unsigned int milisegundos) {
 
 static struct termios modo_terminal_original;
 static int terminal_configurado;
+static unsigned char byte_pendiente;
+static int hay_byte_pendiente;
 
 static void manejar_senal(int sig) {
     /*
@@ -179,6 +186,12 @@ static int esperar_byte(int milisegundos) {
 static int leer_byte(unsigned char *destino) {
     ssize_t leidos;
 
+    if (hay_byte_pendiente) {
+        *destino = byte_pendiente;
+        hay_byte_pendiente = 0;
+        return 1;
+    }
+
     do {
         leidos = read(STDIN_FILENO, destino, 1);
     } while (leidos < 0 && errno == EINTR);
@@ -186,7 +199,16 @@ static int leer_byte(unsigned char *destino) {
     return leidos == 1;
 }
 
+/* Devuelve un byte al buffer de entrada para no perderlo. */
+static void devolver_byte(unsigned char c) {
+    byte_pendiente = c;
+    hay_byte_pendiente = 1;
+}
+
 int tecla_presionada(void) {
+    if (hay_byte_pendiente) {
+        return 1;
+    }
     return esperar_byte(0);
 }
 
@@ -212,6 +234,8 @@ int leer_tecla(void) {
 
         /* Secuencias CSI (ESC [ ...) y SS3 (ESC O ...). */
         if (inicio != '[' && inicio != 'O') {
+            /* No era una flecha: conserva la tecla para la siguiente lectura. */
+            devolver_byte(inicio);
             return TECLA_ESCAPE;
         }
 
