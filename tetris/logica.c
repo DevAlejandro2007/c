@@ -48,27 +48,67 @@ void fijar_pieza(int rango[FIL][COL], PiezaActual pieza) {
 }
 
 void rotar_pieza(PiezaActual *pieza, int rango[FIL][COL]) {
-
-  int temp[PIEZA_SIZE][PIEZA_SIZE];
+  int min_i = PIEZA_SIZE, max_i = -1;
+  int min_j = PIEZA_SIZE, max_j = -1;
 
   for (int i = 0; i < PIEZA_SIZE; i++) {
     for (int j = 0; j < PIEZA_SIZE; j++) {
-      temp[j][PIEZA_SIZE - 1 - i] = pieza->forma[i][j];
+      if (pieza->forma[i][j] == 1) {
+        if (i < min_i) min_i = i;
+        if (i > max_i) max_i = i;
+        if (j < min_j) min_j = j;
+        if (j > max_j) max_j = j;
+      }
     }
   }
+
+  if (max_i < 0) {
+    return;
+  }
+
+  /* Se rota solo la caja que ocupa la pieza para no desplazarla. */
+  int alto = max_i - min_i + 1;
+  int ancho = max_j - min_j + 1;
+  int original[PIEZA_SIZE][PIEZA_SIZE] = {0};
+  int girada[PIEZA_SIZE][PIEZA_SIZE] = {0};
+
+  for (int i = 0; i < alto; i++) {
+    for (int j = 0; j < ancho; j++) {
+      original[i][j] = pieza->forma[min_i + i][min_j + j];
+    }
+  }
+
+  for (int i = 0; i < alto; i++) {
+    for (int j = 0; j < ancho; j++) {
+      girada[j][alto - 1 - i] = original[i][j];
+    }
+  }
+
+  /* La caja girada mide ancho x alto; se ajusta para seguir dentro de 4x4. */
+  int dest_i = min_i;
+  int dest_j = min_j;
+  if (dest_i + ancho > PIEZA_SIZE) {
+    dest_i = PIEZA_SIZE - ancho;
+  }
+  if (dest_j + alto > PIEZA_SIZE) {
+    dest_j = PIEZA_SIZE - alto;
+  }
+
   PiezaActual prueba = *pieza;
   for (int i = 0; i < PIEZA_SIZE; i++) {
     for (int j = 0; j < PIEZA_SIZE; j++) {
-      prueba.forma[i][j] = temp[i][j];
+      prueba.forma[i][j] = 0;
+    }
+  }
+
+  for (int i = 0; i < ancho; i++) {
+    for (int j = 0; j < alto; j++) {
+      prueba.forma[dest_i + i][dest_j + j] = girada[i][j];
     }
   }
 
   if (!colision(rango, prueba, prueba.x, prueba.y)) {
-    for (int i = 0; i < PIEZA_SIZE; i++) {
-      for (int j = 0; j < PIEZA_SIZE; j++) {
-        pieza->forma[i][j] = temp[i][j];
-      }
-    }
+    *pieza = prueba;
   }
 }
 
