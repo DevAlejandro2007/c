@@ -44,19 +44,22 @@ El objetivo va más allá de hacer un juego: demostrar un diseño limpio separan
 
 ```text
 tetris/
-├── main.c           # Flujo del programa, bucle del juego y decisiones de pausa/game over
-├── logica.c         # Lógica pura: colisiones, rotaciones, limpieza de líneas y generación de piezas
-├── render.c         # Renderizado del tablero, pieza actual y siguiente pieza
-├── ui.c             # Menús interactivos, instrucciones, pausa, game over y records
-├── ui.h             # Interfaz de la capa de UI
-├── puntajes.c       # Persistencia de records en texto plano
-├── puntajes.h       # Interfaz de la capa de records
-├── tetris.h         # Definiciones, estructuras, constantes y prototipos comunes
-├── platform/
-│   ├── platform.h   # Interfaz de la capa de abstracción del sistema
-│   └── term.c       # Implementación multiplataforma (terminal, input, timing, pantalla alterna, archivos)
-├── Makefile         # Build para Linux/UNIX
-└── build.bat        # Build para Windows (CMD/PowerShell)
+├── main.c              # Flujo del programa, bucle del juego y decisiones de pausa/game over
+├── puntajes.txt        # Records persistentes (datos en tiempo de ejecución)
+├── Makefile            # Build para Linux/UNIX
+├── build.bat           # Build para Windows (CMD/PowerShell)
+├── juego/              # Reglas, estado y persistencia del juego
+│   ├── tetris.h        # Definiciones, estructuras, constantes y prototipos comunes
+│   ├── logica.c        # Lógica pura: colisiones, rotaciones, limpieza de líneas y generación de piezas
+│   ├── puntajes.c      # Persistencia de records en texto plano
+│   └── puntajes.h      # Interfaz de la capa de records
+├── interfaz/           # Todo lo que se muestra en pantalla
+│   ├── render.c        # Renderizado del tablero, pieza actual y siguiente pieza
+│   ├── ui.c            # Menús interactivos, instrucciones, pausa, game over y records
+│   └── ui.h            # Interfaz de la capa de UI
+└── platform/
+    ├── platform.h      # Interfaz de la capa de abstracción del sistema
+    └── term.c          # Implementación multiplataforma (terminal, input, timing, pantalla alterna, archivos)
 ```
 
 ### Responsabilidades
@@ -64,15 +67,16 @@ tetris/
 | Archivo | Descripción |
 | --- | --- |
 | `main.c` | Controla el flujo entre menú, juego, pausa y records; ejecuta el bucle principal. |
-| `logica.c` | Todo lo algorítmico: `colision()`, `rotar_pieza()`, `limpiar_lineas()`, `fijar_pieza()` y `generar_pieza_aleatoria()`. |
-| `render.c` | Pinta el tablero, el HUD y la pieza siguiente. No conoce menús. |
-| `ui.c` / `ui.h` | Menú principal, instrucciones, pausa, game over y records. Solo depende de `platform/`. |
-| `puntajes.c` / `puntajes.h` | Carga, ordena, sanea y guarda el top 10 en `puntajes.txt`. No conoce la UI. |
+| `juego/tetris.h` | Definiciones, estructuras, constantes y prototipos compartidos por el juego y el renderizado. |
+| `juego/logica.c` | Todo lo algorítmico: `colision()`, `rotar_pieza()`, `limpiar_lineas()`, `fijar_pieza()` y `generar_pieza_aleatoria()`. |
+| `interfaz/render.c` | Pinta el tablero, el HUD y la pieza siguiente. No conoce menús. |
+| `interfaz/ui.c` / `interfaz/ui.h` | Menú principal, instrucciones, pausa, game over y records. Depende de `juego/puntajes.h` y de `platform/`. |
+| `juego/puntajes.c` / `juego/puntajes.h` | Carga, ordena, sanea y guarda el top 10 en `puntajes.txt`. No conoce la UI. |
 | `platform/term.c` | Única capa que conoce el SO. Aquí vive todo lo específico de Windows o Linux. |
 
 ## Diseño Multiplataforma
 
-Gracias a la capa `platform/`, `main.c`, `logica.c`, `render.c`, `ui.c` y `puntajes.c` **no tienen ni un solo `#ifdef`**. Únicamente consumen la interfaz de `platform/platform.h`.
+Gracias a la capa `platform/`, `main.c`, `juego/logica.c`, `interfaz/render.c`, `interfaz/ui.c` y `juego/puntajes.c` **no tienen ni un solo `#ifdef`**. Únicamente consumen la interfaz de `platform/platform.h`.
 
 ### Linux (`!_WIN32`)
 
@@ -127,7 +131,7 @@ tetris.exe
 O directamente:
 
 ```bat
-gcc -std=c11 -Wall -Wextra -Wpedantic -O2 main.c logica.c render.c ui.c puntajes.c platform/term.c -o tetris.exe
+gcc -std=c11 -Wall -Wextra -Wpedantic -O2 -I. main.c juego/logica.c juego/puntajes.c interfaz/render.c interfaz/ui.c platform/term.c -o tetris.exe
 tetris.exe
 ```
 
@@ -237,8 +241,8 @@ Para borrar todos los records, elimina `puntajes.txt`. El archivo está ignorado
 - **Game Loop**: Caída automática por tiempo + procesamiento de input no bloqueante.
 - **Renderizado**: Uso de `\033[H` para reposicionar cursor sin limpiar pantalla completa constantemente.
 - **Teclas normalizadas**: `platform/term.c` traduce flechas, `Enter`, `Esc` y `Backspace` a un enum común; la UI no sabe si corre en Linux o Windows.
-- **Menús reutilizables**: `ui.c` expone un único `menu_seleccion()` interno para el menú principal, la pausa y el game over.
-- **Persistencia aislada**: `puntajes.c` es el único módulo que conoce el formato de `puntajes.txt`; `main.c` decide cuándo guardar y `ui.c` solo muestra la tabla.
+- **Menús reutilizables**: `interfaz/ui.c` expone un único `menu_seleccion()` interno para el menú principal, la pausa y el game over.
+- **Persistencia aislada**: `juego/puntajes.c` es el único módulo que conoce el formato de `puntajes.txt`; `main.c` decide cuándo guardar y `interfaz/ui.c` solo muestra la tabla.
 - **Guardado seguro**: se escribe un archivo temporal y se reemplaza el original mediante `reemplazar_archivo()` en `platform/`.
 - **Pantalla alterna**: La UI usa el buffer alterno de la terminal y restaura el contenido original al salir.
 - **Limpieza segura**: `atexit(restaurar_terminal)` y los manejadores de `SIGINT`/`SIGTERM` (o `SetConsoleCtrlHandler` en Windows) restauran cursor, pantalla y modo de terminal.

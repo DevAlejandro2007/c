@@ -1,17 +1,19 @@
 CC = gcc
 CFLAGS ?= -std=c11 -Wall -Wextra -Wpedantic -O2
+CPPFLAGS ?= -I.
 TARGET ?= tetris
-SOURCES = main.c logica.c render.c ui.c puntajes.c platform/term.c
+SOURCES = main.c juego/logica.c juego/puntajes.c interfaz/render.c interfaz/ui.c platform/term.c
+HEADERS = juego/tetris.h juego/puntajes.h interfaz/ui.h platform/platform.h
 
 .PHONY: all clean run
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCES) tetris.h ui.h puntajes.h platform/platform.h
-	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET)
+$(TARGET): $(SOURCES) $(HEADERS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SOURCES) -o $(TARGET)
 
 run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) *.o platform/*.o
+	rm -f $(TARGET) juego/*.o interfaz/*.o platform/*.o

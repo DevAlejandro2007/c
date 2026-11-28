@@ -1,6 +1,6 @@
-#include "tetris.h"
-#include "puntajes.h"
-#include "ui.h"
+#include "juego/tetris.h"
+#include "juego/puntajes.h"
+#include "interfaz/ui.h"
 
 const int PIEZAS[NUM_PIEZAS][PIEZA_SIZE][PIEZA_SIZE] = {
     {{0,0,0,0},{1,1,1,1},{0,0,0,0},{0,0,0,0}}, // I
