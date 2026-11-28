@@ -1,7 +1,7 @@
 #ifndef UI_H
 #define UI_H
 
-#include "puntajes.h"
+#include "juego/puntajes.h"
 
 typedef enum {
     MENU_JUGAR,

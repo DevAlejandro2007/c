@@ -1,4 +1,4 @@
-#include "tetris.h"
+#include "juego/tetris.h"
 
 
 void render(int rango[FIL][COL], PiezaActual pieza, PiezaActual siguiente,int puntaje ){
